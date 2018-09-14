@@ -1,2 +1,2 @@
 Number of Threads wanted:
-7
+3

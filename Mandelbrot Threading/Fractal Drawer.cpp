@@ -53,8 +53,8 @@ FractalDrawer::FractalDrawer(HWND _hwnd, HDC _hdc, int _winHeight, int _winWidth
 	//Create appropriate number of consumer threads based on thread count
 	for (int i = 0; i < iThreadNum; i++)
 	{
-		ConsumerThread* pThread = new ConsumerThread(m_pixelQueue, m_info, m_screenState);
-		m_consumers.push_back(pThread);
+		ConsumerThread* thread = new ConsumerThread(m_pixelQueue, m_info, m_screenState);
+		m_consumers.push_back(thread);
 	}
 
 	for (int i = 0; i < iThreadNum; i++)
@@ -80,7 +80,7 @@ void FractalDrawer::DeleteThreads()
 		ConsumerThread* temp = m_consumers.back();;
 		m_consumers.pop_back();
 		delete temp;
-		temp = 0;
+		temp = nullptr;
 	}
 }
 
@@ -148,7 +148,13 @@ void FractalDrawer::Draw()
 		PixelToDraw* pPixel = new PixelToDraw();
 		pPixel->x = 0;
 		pPixel->y = i;
-		pPixel->iLinesToDraw = iLinesToDraw;
+ 
+		if (i + iLinesToDraw > m_info.m_iWindowWidth) {
+			pPixel->iLinesToDraw = m_info.m_iWindowWidth - i;
+		}
+		else {
+			pPixel->iLinesToDraw = iLinesToDraw;
+		}
 		m_pixelQueue.AddWorkItem(pPixel);
 	}
 }
@@ -158,7 +164,9 @@ void FractalDrawer::UpdateScreen()
 
 	for (int unsigned i = 0; i < m_consumers.size(); i++)
 	{
-		m_consumers[i]->Join();
+		if (m_consumers[i]->isJoinable()) {
+			m_consumers[i]->Join();
+		}
 	}
 
 	m_timer.tick();

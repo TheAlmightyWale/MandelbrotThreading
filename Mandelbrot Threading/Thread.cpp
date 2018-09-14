@@ -14,25 +14,24 @@ BaseThread::BaseThread()
 {
 	m_iThreadID = iThreadCount;
 	iThreadCount++;
+	m_thread = nullptr;
 }
 
 BaseThread::~BaseThread()
 {
-	m_thread->detach();
 	delete m_thread;
 	m_thread = nullptr;
 }
 
 static void* runThread(void* arg)
 {
-
 	((BaseThread*)arg)->run();
 	return (arg);
 }
 
-int BaseThread::Start()
+void BaseThread::Start()
 {
-	m_thread = new std::thread(&runThread);
+	m_thread = new std::thread(runThread, this);
 }
 
 void BaseThread::Join()
@@ -48,6 +47,10 @@ void BaseThread::Detach()
 int BaseThread::Stop()
 {
 	return (0);
+}
+
+bool BaseThread::isJoinable() {
+	return m_thread->joinable();
 }
 
 

@@ -25,17 +25,15 @@ class WorkQueue
 private:
 	std::list<T> m_queue;
 	std::mutex m_mutex;
-	pthread_cond_t m_condv;
+	std::condition_variable  m_condv;
 
 public:
 	WorkQueue()
 	{
-		pthread_cond_init(&m_condv, NULL);
 	}
 
 	~WorkQueue()
 	{
-		pthread_cond_destroy(&m_condv);
 	}
 
 	//Adds a work item to the queue, while blocking consumers from accessing it
@@ -44,7 +42,7 @@ public:
 	{
 		m_mutex.lock();
 		m_queue.push_back(item);
-		pthread_cond_signal(&m_condv);
+		m_condv.notify_all();
 		m_mutex.unlock();
 	}
 
@@ -52,17 +50,14 @@ public:
 	//Also puts consumer threads to sleep if queue is empty
 	T RemoveWorkItem()
 	{
-		m_mutex.lock();
+		std::unique_lock<std::mutex> lock(m_mutex);
 
-		while (m_queue.size() == 0)
-		{
-			pthread_cond_wait(&m_condv, &m_mutex);
-		}
+		m_condv.wait(lock, [this]() {return this->m_queue.size() != 0; });
 
 		T item = m_queue.front();
 		m_queue.pop_front();
 
-		m_mutex.unlock();
+		lock.unlock();
 
 		return (item);
 	}

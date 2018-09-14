@@ -21,11 +21,12 @@ public:
 	BaseThread(); // Constructor of class
 	virtual ~BaseThread(); // Virtual deconstructor
 
-	int Start();	//This function creates the thread and then causes the thread to begin execution
+	void Start();	//This function creates the thread and then causes the thread to begin execution
 	void Join();		//This function forces the calling thread to wait for the thread on which it is invoked to complete
 	int Stop();		// This function stops the currently running thread
 	int Resume();	// Resumes the stopped thread
 	void Detach();
+	bool isJoinable();
 
 	virtual void* run() = 0;				//Virtual function that will be the entry point of the created thread
 
