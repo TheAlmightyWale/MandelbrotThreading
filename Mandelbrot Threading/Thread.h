@@ -10,27 +10,26 @@
 #define __THREAD_H__
 
 //Posix threading include
-#include <pthread.h>
+#include <thread>
 
 static int iThreadCount = 0;
 
-class Thread
+class BaseThread
 {
 	//Member Functions
 public:
-	Thread(); // Constructor of class
-	virtual ~Thread(); // Virtual deconstructor
+	BaseThread(); // Constructor of class
+	virtual ~BaseThread(); // Virtual deconstructor
 
 	int Start();	//This function creates the thread and then causes the thread to begin execution
-	int Join();		//This function forces the calling thread to wait for the thread on which it is invoked to complete
+	void Join();		//This function forces the calling thread to wait for the thread on which it is invoked to complete
 	int Stop();		// This function stops the currently running thread
 	int Resume();	// Resumes the stopped thread
-	int Detach();
+	void Detach();
 
 	virtual void* run() = 0;				//Virtual function that will be the entry point of the created thread
 
 	unsigned int GetThreadID() const; //Function retrieves a threads ID;
-	pthread_t self();
 
 	//Member Variables
 private:
@@ -39,7 +38,7 @@ private:
 	int m_iRunning;
 	int m_iDetached;
 
-	pthread_t m_tid;
+	std::thread* m_thread;
 
 };
 

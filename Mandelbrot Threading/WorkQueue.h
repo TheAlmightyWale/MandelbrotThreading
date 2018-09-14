@@ -15,6 +15,7 @@
 
 //Library Includes
 #include <list>
+#include <mutex>
 
 //Class implmentation
 template <typename T>
@@ -23,19 +24,17 @@ class WorkQueue
 
 private:
 	std::list<T> m_queue;
-	pthread_mutex_t m_mutex;
+	std::mutex m_mutex;
 	pthread_cond_t m_condv;
 
 public:
 	WorkQueue()
 	{
-		pthread_mutex_init(&m_mutex, NULL);
 		pthread_cond_init(&m_condv, NULL);
 	}
 
 	~WorkQueue()
 	{
-		pthread_mutex_destroy(&m_mutex);
 		pthread_cond_destroy(&m_condv);
 	}
 
@@ -43,17 +42,17 @@ public:
 	//Also calls consumers threads to wake if the queue was previously empty
 	void AddWorkItem(T item)
 	{
-		pthread_mutex_lock(&m_mutex);
+		m_mutex.lock();
 		m_queue.push_back(item);
 		pthread_cond_signal(&m_condv);
-		pthread_mutex_unlock(&m_mutex);
+		m_mutex.unlock();
 	}
 
 	//Removes a work item from the queue, while blocking other threads from accessing it
 	//Also puts consumer threads to sleep if queue is empty
 	T RemoveWorkItem()
 	{
-		pthread_mutex_lock(&m_mutex);
+		m_mutex.lock();
 
 		while (m_queue.size() == 0)
 		{
@@ -63,7 +62,7 @@ public:
 		T item = m_queue.front();
 		m_queue.pop_front();
 
-		pthread_mutex_unlock(&m_mutex);
+		m_mutex.unlock();
 
 		return (item);
 	}

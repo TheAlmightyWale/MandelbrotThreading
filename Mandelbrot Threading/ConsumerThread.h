@@ -16,7 +16,7 @@
 #include "ScreenState.h"
 
 
-class ConsumerThread : public Thread
+class ConsumerThread : public BaseThread
 {
 public:
 

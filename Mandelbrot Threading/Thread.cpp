@@ -9,94 +9,54 @@
 //This Include
 #include "Thread.h"
 
-Thread::Thread()
+BaseThread::BaseThread()
 :m_iDetached(0), m_iRunning(0)
 {
 	m_iThreadID = iThreadCount;
 	iThreadCount++;
 }
 
-Thread::~Thread()
+BaseThread::~BaseThread()
 {
-	if (m_iRunning == 1 && m_iDetached == 0)
-	{
-		pthread_detach(m_tid);
-	}
-	if (m_iRunning == 1)
-	{
-		pthread_cancel(m_tid);
-	}
+	m_thread->detach();
+	delete m_thread;
+	m_thread = nullptr;
 }
 
 static void* runThread(void* arg)
 {
 
-	((Thread*)arg)->run();
+	((BaseThread*)arg)->run();
 	return (arg);
 }
 
-int Thread::Start()
+int BaseThread::Start()
 {
-	int result = pthread_create(&m_tid, NULL, runThread, this);
-
-	if (result == 0)
-	{
-		m_iRunning = 1;
-	}
-
-	return (result);
+	m_thread = new std::thread(&runThread);
 }
 
-int Thread::Join()
+void BaseThread::Join()
 {
-	int result = -1;
-
-	if (m_iRunning == 1)
-	{
-		result = pthread_join(m_tid, NULL);
-
-		if (result == 0)
-		{
-			m_iDetached = 1;
-		}
-	}
-
-	return (result);
+	m_thread->join();
 }
 
-int Thread::Detach()
+void BaseThread::Detach()
 {
-	int result = -1;
-
-	if (m_iRunning == 1 && m_iDetached == 0)
-	{
-		result = pthread_detach(m_tid);
-		if (result == 0)
-		{
-			m_iDetached = 0;
-		}
-	}
-
-	return (result);
+	m_thread->detach();
 }
 
-int Thread::Stop()
+int BaseThread::Stop()
 {
 	return (0);
 }
 
 
-int Thread::Resume()
+int BaseThread::Resume()
 {
 	return (0);
 }
 
-unsigned int Thread::GetThreadID() const
+unsigned int BaseThread::GetThreadID() const
 {
 	return (m_iThreadID);
-}
-
-pthread_t Thread::self()
-{
-	return (m_tid);
 }
